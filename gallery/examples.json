@@ -1,0 +1,42 @@
+[
+  {
+    "name": "Markdown Link",
+    "description": "Copy as markdown link",
+    "code": "return lib.toMarkdownLink(context.title, context.url)"
+  },
+  {
+    "name": "Title + URL",
+    "description": "Copy title and URL on separate lines",
+    "code": "return context.title + '\\n' + context.url"
+  },
+  {
+    "name": "Selection with Source",
+    "description": "Copy selected text with source attribution",
+    "code": "if (!context.selection) return 'No text selected'\\n\\nreturn `\"${context.selection}\"\\n\\n- From: ${context.title}\\n- URL: ${context.url}`"
+  },
+  {
+    "name": "HTML Link",
+    "description": "Copy as HTML link",
+    "code": "return {\\n  html: lib.toHtmlLink(context.title, context.url),\\n  text: context.title + ' - ' + context.url\\n}"
+  },
+  {
+    "name": "Clean Amazon URL",
+    "description": "Copy simplified Amazon product URL",
+    "code": "// Extract ASIN from Amazon URL\\nconst match = context.url.match(/\\/dp\\/([A-Z0-9]{10})/)\\nif (match) {\\n  return `https://www.amazon.com/dp/${match[1]}`\\n}\\nreturn context.url"
+  },
+  {
+    "name": "Tweet This",
+    "description": "Create a tweet with the page",
+    "code": "const text = context.title\\nconst url = context.url\\nconst tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`\\nreturn tweetUrl"
+  },
+  {
+    "name": "Org-mode Link",
+    "description": "Copy as Org-mode link format",
+    "code": "return `[[${context.url}][${context.title}]]`"
+  },
+  {
+    "name": "Page Info Table",
+    "description": "Copy page information as a table",
+    "code": "const info = [\\n  `Title: ${context.title}`,\\n  `URL: ${context.url}`,\\n  `Domain: ${lib.extractDomain(context.url)}`,\\n  `Description: ${context.meta.description || 'N/A'}`,\\n  `Date: ${lib.formatDate(new Date(), 'YYYY-MM-DD HH:mm')}`,\\n]\\n\\nreturn info.join('\\n')"
+  }
+]

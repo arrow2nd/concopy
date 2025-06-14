@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+/* Custom theme colors for fox branding */
+@theme {
+  --color-fox-50: #fff8f1;
+  --color-fox-100: #ffecd9;
+  --color-fox-200: #ffd4b1;
+  --color-fox-300: #ffb47f;
+  --color-fox-400: #ff8a4a;
+  --color-fox-500: #ff6b28;
+  --color-fox-600: #ff4d1a;
+  --color-fox-700: #e63312;
+  --color-fox-800: #bf2613;
+  --color-fox-900: #9b2113;
+}
