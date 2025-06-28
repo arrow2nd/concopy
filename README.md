@@ -31,6 +31,7 @@ intuitive interface!
 
 - CSP-compliant execution (no eval/Function constructor)
 - Template-based safe function execution
+- Custom code editing for all templates - templates serve as starting points
 - Firefox Manifest V3 compatible
 - Automatic clipboard API integration
 
@@ -84,6 +85,8 @@ npm run build
 - **Selected Text**: Copy selected text or fallback to title
 - **Page Summary**: Comprehensive page information
 - **Custom Template**: Create your own with template variables
+
+All templates are fully editable - they serve as starting points that you can customize to your needs!
 
 ### Function Interface
 

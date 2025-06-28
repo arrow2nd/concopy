@@ -183,20 +183,104 @@ function extractTemplateFromCode(code: string): string | undefined {
   return undefined
 }
 
+// Parse and execute user code safely
+export function executeUserCode(code: string, context: PageContext): FunctionResult {
+  // Extract the function body from the code
+  // Expected format: (page) => { return { text: ..., html: ... } }
+  const functionBodyMatch = code.match(/\(\s*page\s*\)\s*=>\s*\{([\s\S]*)\}/)
+  
+  if (!functionBodyMatch) {
+    throw new Error('Invalid function format. Expected: (page) => { return { text: ..., html: ... } }')
+  }
+  
+  const functionBody = functionBodyMatch[1]
+  
+  // Parse return statement
+  const returnMatch = functionBody.match(/return\s*\{([\s\S]*)\}/)
+  if (!returnMatch) {
+    throw new Error('Function must return an object with text and/or html properties')
+  }
+  
+  const returnContent = returnMatch[1]
+  
+  // Create result object
+  const result: FunctionResult = {}
+  
+  // Parse text property
+  const textMatch = returnContent.match(/text:\s*([^,}]+)/)
+  if (textMatch) {
+    const textExpression = textMatch[1].trim()
+    result.text = evaluateExpression(textExpression, context)
+  }
+  
+  // Parse html property
+  const htmlMatch = returnContent.match(/html:\s*([^,}]+)/)
+  if (htmlMatch) {
+    const htmlExpression = htmlMatch[1].trim()
+    result.html = evaluateExpression(htmlExpression, context)
+  }
+  
+  return result
+}
+
+// Safely evaluate expressions in the context of page data
+function evaluateExpression(expression: string, context: PageContext): string {
+  // Handle template literals
+  if (expression.includes('`')) {
+    // First, extract the template literal content
+    const templateMatch = expression.match(/`([^`]+)`/)
+    if (templateMatch) {
+      let content = templateMatch[1]
+      // Replace all template expressions
+      content = content
+        .replace(/\$\{page\.title\}/g, context.title)
+        .replace(/\$\{page\.url\}/g, context.url)
+        .replace(/\$\{page\.selection\}/g, context.selection || '')
+        .replace(/\$\{page\.meta\?\.description\}/g, context.meta?.description || '')
+        .replace(/\$\{page\.meta\.description\}/g, context.meta?.description || '')
+      return content
+    }
+  }
+  
+  // Handle string concatenation
+  let result = expression
+    .replace(/page\.title/g, `"${context.title}"`)
+    .replace(/page\.url/g, `"${context.url}"`)
+    .replace(/page\.selection/g, `"${context.selection || ''}"`)
+    .replace(/page\.meta\.description/g, `"${context.meta?.description || ''}"`)
+    .replace(/"\s*\+\s*"/g, '') // Remove quotes between concatenations
+    .replace(/\\n/g, '\n') // Handle newlines
+  
+  // Handle render function calls
+  if (result.includes('render(')) {
+    const renderMatch = result.match(/render\(([^,]+),\s*page\)/)
+    if (renderMatch) {
+      const template = renderMatch[1].replace(/["']/g, '')
+      return render(template, context)
+    }
+  }
+  
+  // Clean up remaining quotes
+  return result.replace(/^"|"$/g, '')
+}
+
 // Main executor function
 export async function executeCopyFunction(
   func: CopyFunction,
   context: PageContext
 ): Promise<FunctionResult> {
   try {
-    // If function has a templateId, use it directly
-    if (func.templateId) {
+    // Always use the custom code if it exists
+    if (func.code) {
+      return executeUserCode(func.code, context)
+    }
+    
+    // Fallback to template if no custom code
+    if (func.templateId && func.templateId in templateFunctions) {
       return executeTemplateFunction(func.templateId, context, func.customOptions)
     }
     
-    // Otherwise, try to parse the user function and map to a template
-    const parsed = parseUserFunction(func.code)
-    return executeTemplateFunction(parsed.templateId, context, parsed.customOptions)
+    throw new Error('No code or valid template found for function')
     
   } catch (error) {
     console.error('Function execution error:', error)

@@ -19,8 +19,9 @@ export default function FunctionEditor({ function: func, onSave, onCancel }: Fun
   const [urlPattern, setUrlPattern] = useState(func.urlPattern || '')
 
   useEffect(() => {
-    // Update code when template changes
-    if (selectedTemplate in templateFunctions) {
+    // Update code only when template changes AND it's not already been customized
+    // This prevents overwriting user's custom edits
+    if (selectedTemplate in templateFunctions && selectedTemplate !== func.templateId) {
       setCustomCode(templateFunctions[selectedTemplate as keyof typeof templateFunctions].code)
     }
   }, [selectedTemplate])
@@ -138,13 +139,10 @@ export default function FunctionEditor({ function: func, onSave, onCancel }: Fun
             onChange={(e) => setCustomCode(e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 font-mono text-sm"
             rows={10}
-            readOnly={selectedTemplate !== 'custom-template'}
           />
-          {selectedTemplate !== 'custom-template' && (
-            <p className="text-sm text-gray-500 mt-1">
-              This template is read-only. Select &quot;Custom Template&quot; to edit the code.
-            </p>
-          )}
+          <p className="text-sm text-gray-500 mt-1">
+            You can edit the code for any template. The template serves as a starting point.
+          </p>
         </div>
 
         {/* Styling */}
